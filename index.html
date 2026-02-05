@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Sai | The Infinite Moment</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #e2b04a; --bg: #010204; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; }
+
+        canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        .overlay { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* INTRO SINGULARITY */
+        .singularity {
+            width: 85px; height: 85px; border-radius: 50%; background: white;
+            box-shadow: 0 0 40px 10px white, 0 0 100px 20px var(--gold);
+            cursor: pointer; animation: pulse-aura 2s infinite ease-in-out;
+        }
+        @keyframes pulse-aura {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 40px 5px white, 0 0 80px 10px var(--gold); }
+            50% { transform: scale(1.15); box-shadow: 0 0 60px 15px white, 0 0 120px 30px var(--gold); }
+        }
+
+        /* TIMER BOX */
+        .glass-shell {
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px);
+            border: 1px solid rgba(226, 176, 74, 0.2); border-radius: 50%;
+            width: 300px; height: 300px; display: flex; flex-direction: column; 
+            justify-content: center; box-shadow: 0 0 100px rgba(0,0,0,0.9);
+        }
+
+        h1 { font-family: 'Cinzel', serif; font-size: 3rem; letter-spacing: 12px; color: var(--gold); margin: 0; }
+        .timer-val { font-size: 4.5rem; font-weight: 200; margin: 0; }
+
+        #ticker { font-size: 0.8rem; letter-spacing: 2px; height: 24px; margin-top: 20px; color: var(--gold); opacity: 0; transition: 0.8s; text-transform: uppercase; }
+
+        #timer-view, #surprise-view { display: none; opacity: 0; }
+        
+        .final-message { max-width: 85%; margin: 20px auto; font-size: 1rem; font-weight: 200; line-height: 2; font-style: italic; }
+        
+        #glass-emoji { font-size: 5rem; display: inline-block; transition: 0.3s; cursor: pointer; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+    <audio id="music" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg"></audio>
+
+    <div class="overlay" id="setup-view">
+        <div onclick="ignite()">
+            <div class="singularity"></div>
+            <p style="letter-spacing: 8px; margin-top: 50px; font-size: 0.6rem; color: var(--gold); opacity: 0.8;">TAP TO INITIATE REVEAL</p>
+        </div>
+    </div>
+
+    <div class="overlay" id="timer-view">
+        <div class="glass-shell">
+            <h1 style="font-size: 1.2rem; opacity: 0.5;">SAI</h1>
+            <div class="timer-val" id="clock">01:00</div>
+            <div id="ticker">Starting the journey...</div>
+        </div>
+    </div>
+
+    <div class="overlay" id="surprise-view">
+        <div class="glass-card">
+            <h1 style="font-size: 4rem; margin-bottom: 10px;">SAI</h1>
+            <p style="letter-spacing: 8px; color: var(--gold); margin-bottom: 20px;">HAPPY BIRTHDAY</p>
+            <p class="final-message">
+                "In a universe of billions, my heart only beats for you. May this year be as luminous as the light you bring into my life."
+            </p>
+            
+            <div id="toast-section" onclick="clinkGlass()">
+                <div id="glass-emoji">🥂</div>
+                <p id="toast-text" style="font-size: 0.7rem; letter-spacing: 3px; color: var(--gold); margin-top: 10px;">TAP TO TOAST TO US</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let speedMult = 0.5;
+
+        const reasons = [
+            "My soul recognized yours instantly.",
+            "You are the anchor in every storm.",
+            "Your love is my greatest strength.",
+            "To the man who owns my every thought.",
+            "You are my masterpiece, Sai.",
+            "I choose you in every lifetime.",
+            "Your kindness is my favorite melody.",
+            "I love you more than words can hold."
+        ];
+
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize;
+        resize();
+
+        class Particle {
+            constructor(x, y, speed, isBurst = false) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.radius = isBurst ? Math.random() * 3 : Math.random() * 1.2;
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(226, 176, 74, ${this.alpha})`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+            }
+            update() {
+                this.x += this.vx * speedMult; this.y += this.vy * speedMult;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+        }
+
+        for (let i = 0; i < 150; i++) particles.push(new Particle(null, null, 0.8));
+
+        function animate() {
+            ctx.fillStyle = 'rgba(1, 2, 4, 0.2)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function ignite() {
+            speedMult = 25; // Shockwave
+            setTimeout(() => speedMult = 0.8, 800);
+            
+            // Audio priming for later
+            const m = document.getElementById('music');
+            m.play().then(() => { m.pause(); m.currentTime = 0; });
+
+            document.getElementById('setup-view').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('setup-view').style.display = 'none';
+                const tv = document.getElementById('timer-view');
+                tv.style.display = 'flex';
+                setTimeout(() => tv.style.opacity = '1', 50);
+                startTimer();
+            }, 800);
+        }
+
+        function startTimer() {
+            let time = 60;
+            let rIdx = 0;
+            
+            // Ticker rotation (Every 4 seconds)
+            setInterval(() => {
+                const t = document.getElementById('ticker');
+                t.style.opacity = 0;
+                setTimeout(() => {
+                    t.innerText = reasons[rIdx];
+                    t.style.opacity = 1;
+                    rIdx = (rIdx + 1) % reasons.length;
+                }, 800);
+            }, 4000);
+
+            const interval = setInterval(() => {
+                time--;
+                document.getElementById('clock').innerText = `00:${time.toString().padStart(2, '0')}`;
+                if (time < 10) speedMult += 0.5;
+                if (time <= 0) { clearInterval(interval); reveal(); }
+            }, 1000);
+        }
+
+        function reveal() {
+            document.getElementById('timer-view').style.display = 'none';
+            const sv = document.getElementById('surprise-view');
+            sv.style.display = 'flex';
+            setTimeout(() => sv.style.opacity = '1', 50);
+            document.getElementById('music').play();
+
+            speedMult = 30; // Final Explosion
+            for(let i=0; i<300; i++) particles.push(new Particle(canvas.width/2, canvas.height/2, 15, true));
+
+            const duration = 20 * 1000;
+            const end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 70, origin: { x: 0, y: 0.8 }, colors: ['#e2b04a', '#ffffff'] });
+                confetti({ particleCount: 3, angle: 120, spread: 70, origin: { x: 1, y: 0.8 }, colors: ['#e2b04a', '#ffffff'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
+        function clinkGlass() {
+            const g = document.getElementById('glass-emoji');
+            g.style.transform = 'scale(1.4) rotate(15deg)';
+            confetti({ particleCount: 100, spread: 360, origin: { y: 0.7 }, colors: ['#e2b04a', '#ffffff'], shapes: ['star'] });
+            document.getElementById('toast-text').innerText = "FOREVER WITH YOU! 🥂";
+            setTimeout(() => g.style.transform = 'scale(1) rotate(0deg)', 300);
+        }
+    </script>
+</body>
+</html>
