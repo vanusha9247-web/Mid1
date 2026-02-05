@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Love</title>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --deep-red: #8b0000;
+            --lego-red: #e60000;
+            --lego-blue: #0055ff;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: #000;
+            font-family: 'Garamond', serif;
+        }
+
+        /* AURORA BACKGROUND */
+        .aurora {
+            position: fixed; top: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, #00020a, #011627);
+            z-index: -2;
+        }
+        .aurora-glow {
+            position: absolute; width: 200%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 180, 0.1), rgba(150, 0, 255, 0.1), transparent);
+            filter: blur(100px); animation: flow 18s linear infinite;
+        }
+        @keyframes flow { from { transform: translateX(-50%); } to { transform: translateX(0%); } }
+
+        /* PERSPECTIVE WALKWAY */
+        .pathway {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 100vh;
+            background: radial-gradient(ellipse at bottom, rgba(139, 0, 0, 0.4) 0%, transparent 80%);
+            clip-path: polygon(48% 0%, 52% 0%, 100% 100%, 0% 100%);
+            z-index: -1;
+        }
+
+        /* FALLING REAL ROSE PETALS */
+        .petal {
+            position: absolute; width: 25px; height: 30px;
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #8b0000);
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            pointer-events: none; z-index: 5;
+        }
+
+        /* GLITTER SPARKLES */
+        .sparkle {
+            position: absolute; width: 3px; height: 3px; background: white;
+            border-radius: 50%; box-shadow: 0 0 10px #fff700;
+            z-index: 4; animation: blink 1s infinite alternate;
+        }
+        @keyframes blink { from { opacity: 0; } to { opacity: 1; } }
+
+        /* COUNTDOWN & DOOR */
+        #ui-layer {
+            position: absolute; inset: 0; display: flex; 
+            align-items: center; justify-content: center; z-index: 10;
+        }
+        #number { font-size: 150px; font-weight: bold; color: white; text-shadow: 0 0 30px #ff0000; }
+
+        #door-wrapper { display: none; perspective: 1200px; cursor: pointer; text-align: center; }
+        .door {
+            width: 140px; height: 220px; background: #2b1a1a;
+            border: 4px solid var(--gold); border-radius: 4px;
+            transform-origin: left; transition: transform 1.8s ease-in-out;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+        }
+        .door.open { transform: rotateY(-110deg); }
+
+        /* THE DINNER ROOM */
+        #dinner-scene {
+            display: none; position: fixed; inset: 0;
+            background: radial-gradient(circle at center, #1a0505 0%, #000 100%);
+            flex-direction: column; align-items: center; justify-content: center;
+            color: var(--gold); z-index: 20;
+        }
+
+        /* CANDLE SETUP */
+        .candle-box { display: flex; gap: 80px; position: absolute; top: 40%; }
+        .candle { width: 12px; height: 40px; background: #fff; position: relative; border-radius: 2px; }
+        .flame {
+            width: 10px; height: 16px; background: #ff9d00; border-radius: 50% 50% 20% 20%;
+            position: absolute; top: -12px; left: 1px;
+            box-shadow: 0 0 15px #ff5e00; animation: flicker 0.1s infinite alternate;
+        }
+        @keyframes flicker { from { transform: scale(1); opacity: 0.8; } to { transform: scale(1.1); opacity: 1; } }
+
+        /* LEGO FIGURES */
+        .lego-couple { display: flex; gap: 100px; margin-bottom: -10px; z-index: 25; }
+        .lego-char { width: 30px; height: 45px; position: relative; border-radius: 4px; }
+        .lego-head { width: 20px; height: 20px; background: #ffdb00; border-radius: 4px; margin: -15px auto 0; position: relative; }
+        .lego-head::after { content: '..'; font-weight: bold; position: absolute; top: 0; left: 5px; color: #000; }
+
+        /* BALLOONS */
+        .balloon {
+            position: absolute; width: 60px; height: 75px; background: #e60000;
+            border-radius: 50%; animation: float 5s ease-in-out infinite; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3);
+        }
+        .balloon::after { content: ''; position: absolute; bottom: -30px; left: 50%; width: 1px; height: 50px; background: rgba(255,255,255,0.2); }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(2deg); } 50% { transform: translateY(-30px) rotate(-2deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="aurora"><div class="aurora-glow"></div></div>
+    <div class="pathway"></div>
+
+    <div id="ui-layer">
+        <div id="countdown-wrap" style="text-align: center;">
+            <div id="number">10</div>
+            <p style="color: white; letter-spacing: 5px; font-size: 14px;">FOR MY BEST FRIEND & HUSBAND</p>
+        </div>
+
+        <div id="door-wrapper" onclick="openDoor()">
+            <div class="door"></div>
+            <p style="color: var(--gold); margin-top: 20px; letter-spacing: 3px;">TAP TO OPEN</p>
+        </div>
+    </div>
+
+    <div id="dinner-scene">
+        <div class="balloon" style="left: 10%; top: 15%;"></div>
+        <div class="balloon" style="right: 15%; top: 20%; animation-delay: 1s; background: #b30000;"></div>
+        <div class="balloon" style="left: 20%; top: 5%; animation-delay: 2s;"></div>
+
+        <h1 style="font-size: 3.5rem; margin-bottom: 60px; text-shadow: 0 0 10px rgba(212,175,55,0.5);">Happy Birthday Baby..</h1>
+
+        <div class="lego-couple">
+            <div class="lego-char" style="background: var(--lego-blue);">
+                <div class="lego-head"></div>
+            </div>
+            <div class="lego-char" style="background: var(--lego-red);">
+                <div class="lego-head"></div>
+            </div>
+        </div>
+
+        <div style="width: 250px; height: 10px; background: var(--gold); border-radius: 10px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);"></div>
+        
+        <div class="candle-box">
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+        </div>
+        
+        <p style="margin-top: 40px; font-style: italic; font-size: 1.2rem;">Our special table is ready. ❤️</p>
+    </div>
+
+    <script>
+        // Effects: Petals and Sparkles
+        function spawnEffects() {
+            // Petals
+            const petal = document.createElement('div');
+            petal.className = 'petal';
+            petal.style.left = Math.random() * 100 + 'vw';
+            const dur = Math.random() * 5 + 5;
+            document.body.appendChild(petal);
+            petal.animate([
+                { top: '-50px', transform: 'rotate(0deg)' },
+                { top: '110vh', transform: `rotate(${Math.random()*720}deg) translateX(${(Math.random()-0.5)*150}px)` }
+            ], { duration: dur * 1000 });
+            setTimeout(() => petal.remove(), dur * 1000);
+
+            // Sparkles
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * 100 + 'vw';
+            sparkle.style.top = Math.random() * 100 + 'vh';
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+        setInterval(spawnEffects, 300);
+
+        // Countdown System
+        let timeLeft = 10;
+        const numLabel = document.getElementById('number');
+        const timer = setInterval(() => {
+            timeLeft--;
+            numLabel.innerText = timeLeft;
+            if (timeLeft === 1) {
+                clearInterval(timer);
+                setTimeout(() => {
+                    document.getElementById('countdown-wrap').style.display = 'none';
+                    document.getElementById('door-wrapper').style.display = 'block';
+                }, 1000);
+            }
+        }, 1000);
+
+        // Scene Reveal
+        function openDoor() {
+            document.querySelector('.door').classList.add('open');
+            setTimeout(() => {
+                document.getElementById('dinner-scene').style.display = 'flex';
+                document.querySelector('.pathway').style.display = 'none';
+                document.querySelector('.aurora').style.display = 'none';
+            }, 1600);
+        }
+    </script>
+</body>
+</html>
