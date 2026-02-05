@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Sai | Forever</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #e2b04a; --bg: #010204; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; touch-action: none; }
+        
+        canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+
+        .overlay { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; pointer-events: none; }
+        .interactive { pointer-events: auto; }
+
+        /* THE SINGULARITY */
+        .singularity { 
+            width: 90px; height: 90px; border-radius: 50%; background: white; 
+            box-shadow: 0 0 40px 10px white, 0 0 100px 20px var(--gold);
+            cursor: pointer; animation: pulse-aura 2s infinite ease-in-out; 
+        }
+        @keyframes pulse-aura { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.1); opacity: 1; } }
+
+        /* LOVE ORBS - THE TARGETS */
+        .orb { 
+            position: absolute; width: 60px; height: 60px; 
+            background: radial-gradient(circle at 30% 30%, #fff, var(--gold)); 
+            border-radius: 50%; box-shadow: 0 0 25px var(--gold); 
+            cursor: pointer; z-index: 50; pointer-events: auto;
+            animation: orbFloat 3s infinite ease-in-out;
+        }
+        @keyframes orbFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(5px, -15px); } }
+
+        /* PICKUP LINE ANIMATION */
+        .pickup-text { 
+            position: absolute; font-family: 'Cinzel', serif; color: var(--gold); 
+            font-size: 1.1rem; pointer-events: none; text-shadow: 0 0 15px rgba(0,0,0,1); 
+            z-index: 100; animation: shatterRise 1.8s forwards ease-out; white-space: nowrap; font-weight: bold;
+        }
+        @keyframes shatterRise { 
+            0% { opacity: 0; transform: scale(0.5) translateY(0); filter: blur(10px); }
+            20% { opacity: 1; filter: blur(0px); }
+            100% { opacity: 0; transform: scale(1.2) translateY(-80px); } 
+        }
+
+        /* TIMER CORNER */
+        .glass-timer { 
+            position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(226, 176, 74, 0.3); border-radius: 40px; 
+            padding: 10px 25px; z-index: 200; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .clock-val { font-size: 2rem; font-weight: 200; color: white; letter-spacing: 2px; }
+
+        /* FINAL SCREEN */
+        #surprise-view { display: none; opacity: 0; transition: opacity 1.5s; }
+        .final-card { border: 1px solid var(--gold); padding: 40px 20px; border-radius: 30px; background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); }
+        #glass-emoji { font-size: 5.5rem; cursor: pointer; filter: drop-shadow(0 0 20px var(--gold)); }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+    <audio id="music" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg"></audio>
+
+    <div class="overlay interactive" id="setup-view">
+        <div onclick="ignite()">
+            <div class="singularity"></div>
+            <p style="letter-spacing: 6px; margin-top: 40px; font-size: 0.7rem; color: var(--gold); text-transform: uppercase;">Tap to begin the timeline</p>
+        </div>
+    </div>
+
+    <div id="timer-view" style="display:none;">
+        <div class="glass-timer">
+            <div class="clock-val" id="clock">01:00</div>
+        </div>
+        </div>
+
+    <div class="overlay" id="surprise-view">
+        <div class="interactive final-card">
+            <h1 style="font-size: 4rem; font-family: 'Cinzel'; margin: 0; color: var(--gold);">SAI</h1>
+            <p style="letter-spacing: 10px; font-size: 0.8rem; margin-bottom: 20px; opacity: 0.8;">MY ETERNAL KING</p>
+            <p style="max-width: 300px; line-height: 2; font-style: italic; font-weight: 200; margin-bottom: 30px;">
+                "Every star in the sky is jealous of the way you shine. Happy Birthday, my love."
+            </p>
+            <div onclick="clinkGlass()">
+                <div id="glass-emoji">🥂</div>
+                <p style="font-size: 0.7rem; color: var(--gold); letter-spacing: 4px; margin-top: 15px;">TOAST TO US</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let speedMult = 0.6;
+        const pickups = [
+            "You're my favorite view.", "Still crushing on you.", "Mine. Forever.",
+            "My king, my home.", "Is it hot here, or just you?", "My heart is your kingdom.",
+            "I love your smile.", "Every day with you is a win.", "Simply irresistible.",
+            "You're the best part of me.", "My forever Valentine.", "Drowning in your eyes."
+        ];
+
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+
+        class Particle {
+            constructor(x, y, speed, color) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.radius = Math.random() * 1.5;
+                this.color = color || `rgba(226, 176, 74, ${Math.random() * 0.4 + 0.2})`;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+            }
+            update() {
+                this.x += this.vx * speedMult; this.y += this.vy * speedMult;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+        }
+
+        for (let i = 0; i < 150; i++) particles.push(new Particle(null, null, 1));
+
+        function animate() {
+            ctx.fillStyle = 'rgba(1, 2, 4, 0.25)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function ignite() {
+            speedMult = 25; 
+            setTimeout(() => speedMult = 0.8, 800);
+            
+            const m = document.getElementById('music');
+            m.play().then(() => { m.pause(); m.currentTime = 0; });
+
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('timer-view').style.display = 'block';
+            startTimer();
+            spawnOrb();
+        }
+
+        function spawnOrb() {
+            if(document.getElementById('timer-view').style.display === 'none') return;
+            const orb = document.createElement('div');
+            orb.className = 'orb';
+            // Random position away from the timer corner
+            orb.style.left = Math.random() * (window.innerWidth - 80) + 'px';
+            orb.style.top = (Math.random() * (window.innerHeight - 150) + 100) + 'px';
+            
+            orb.onclick = (e) => {
+                e.stopPropagation();
+                shatterEffect(e.clientX, e.clientY);
+                showText(e.clientX, e.clientY);
+                orb.remove();
+            };
+            document.getElementById('timer-view').appendChild(orb);
+            // Spawn new orb every 3.5 seconds
+            setTimeout(spawnOrb, 3500);
+        }
+
+        function shatterEffect(x, y) {
+            // Background reaction (The glowing shocks)
+            speedMult = 12;
+            for(let i=0; i<30; i++) {
+                particles.push(new Particle(x, y, 18, 'white'));
+            }
+            setTimeout(() => speedMult = 0.8, 400);
+            
+            // Physical shatter burst
+            confetti({
+                particleCount: 40, spread: 360, startVelocity: 25,
+                origin: { x: x/window.innerWidth, y: y/window.innerHeight },
+                colors: ['#e2b04a', '#ffffff'], gravity: 0.6
+            });
+        }
+
+        function showText(x, y) {
+            const p = document.createElement('div');
+            p.className = 'pickup-text';
+            p.innerText = pickups[Math.floor(Math.random()*pickups.length)];
+            p.style.left = (x - 50) + 'px'; p.style.top = y + 'px';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1800);
+        }
+
+        function startTimer() {
+            let time = 60;
+            const interval = setInterval(() => {
+                time--;
+                document.getElementById('clock').innerText = `00:${time.toString().padStart(2, '0')}`;
+                if (time <= 0) { clearInterval(interval); reveal(); }
+            }, 1000);
+        }
+
+        function reveal() {
+            document.getElementById('timer-view').style.display = 'none';
+            const sv = document.getElementById('surprise-view');
+            sv.style.display = 'flex'; setTimeout(() => sv.style.opacity = '1', 50);
+            document.getElementById('music').play();
+            
+            // Grand Finale Shockwave
+            speedMult = 45;
+            for(let i=0; i<400; i++) particles.push(new Particle(canvas.width/2, canvas.height/2, 25));
+            confetti({ particleCount: 250, spread: 100, origin: { y: 0.5 }, colors: ['#e2b04a', '#ffffff'] });
+        }
+
+        function clinkGlass() {
+            confetti({ particleCount: 150, spread: 360, origin: { y: 0.6 }, colors: ['#e2b04a', '#ffffff'], shapes: ['star'] });
+        }
+
+        window.addEventListener('mousedown', (e) => {
+            if(document.getElementById('surprise-view').style.display === 'flex') {
+                confetti({ 
+                    particleCount: 40, 
+                    origin: { x: e.clientX/window.innerWidth, y: e.clientY/window.innerHeight }, 
+                    colors: ['#e2b04a'] 
+                });
+            }
+        });
+    </script>
+</body>
+</html>
