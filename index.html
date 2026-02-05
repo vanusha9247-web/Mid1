@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Sai | Golden Birthday</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #e2b04a; --bright-gold: #fff0ad; --red: #ff3e3e; --bg: #010204; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; touch-action: none; }
+        
+        canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .overlay { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; pointer-events: none; }
+        .interactive { pointer-events: auto; }
+
+        /* PULSING RED HEARTS */
+        .heart-orb {
+            position: absolute; width: 45px; height: 45px;
+            background-color: var(--red);
+            clip-path: path('M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.568-3.956 4.407-4.457 5.719-4.457 2.213 0 5.281 1.4 5.281 5.191 0 4.105-5.37 8.863-11 14.402z');
+            transform-origin: center;
+            filter: drop-shadow(0 0 20px var(--red));
+            cursor: pointer; z-index: 50; pointer-events: auto;
+            animation: heartPulse 1.2s infinite ease-in-out;
+        }
+        @keyframes heartPulse { 0%, 100% { transform: scale(2.2); } 50% { transform: scale(2.8); } }
+
+        /* INTRO SINGULARITY (Pure Gold Glow) */
+        .singularity { 
+            width: 90px; height: 90px; border-radius: 50%; background: #fff; 
+            box-shadow: 0 0 60px #fff, 0 0 120px var(--gold), 0 0 200px var(--gold); 
+            cursor: pointer; animation: breathe 2s infinite ease-in-out;
+        }
+        @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
+
+        /* PICKUP BOX - GOLD BORDER */
+        .pickup-box { position: fixed; width: 85%; left: 7.5%; z-index: 1000; display: flex; justify-content: center; pointer-events: none; }
+        .pickup-content {
+            background: rgba(0, 0, 0, 0.95); border: 2px solid var(--gold);
+            padding: 18px 24px; border-radius: 15px; color: #fff;
+            font-size: 1rem; text-align: center; font-weight: 500;
+            box-shadow: 0 0 40px rgba(226, 176, 74, 0.4);
+            animation: shatterRise 2.5s forwards ease-out;
+        }
+        @keyframes shatterRise { 
+            0% { opacity: 0; transform: translateY(40px) scale(0.8); filter: blur(5px); }
+            15% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
+            85% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-120px); }
+        }
+
+        .glass-timer { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid var(--gold); border-radius: 30px; padding: 10px 20px; z-index: 200; }
+        #surprise-view { display: none; opacity: 0; transition: opacity 1.5s; }
+        .final-card { border: 2px solid var(--gold); padding: 35px; border-radius: 35px; background: rgba(0,0,0,0.92); backdrop-filter: blur(30px); width: 80%; max-width: 420px; box-shadow: 0 0 100px rgba(226, 176, 74, 0.2); }
+        .reveal-text { font-size: 0.95rem; line-height: 1.8; text-align: center; white-space: pre-line; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+    <audio id="music" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg"></audio>
+
+    <div class="overlay interactive" id="setup-view">
+        <div onclick="ignite()">
+            <div class="singularity"></div>
+            <p style="letter-spacing: 8px; margin-top: 50px; color: var(--gold); font-size: 0.7rem; font-weight: 600;">INITIATE CELESTIAL SEQUENCE</p>
+        </div>
+    </div>
+
+    <div id="timer-view" style="display:none;">
+        <div class="glass-timer"><div id="clock" style="font-size: 1.5rem; letter-spacing: 3px; color: var(--gold);">01:00</div></div>
+    </div>
+
+    <div class="overlay" id="surprise-view">
+        <div class="interactive final-card">
+            <h1 style="font-family: 'Cinzel'; color: var(--gold); margin: 0; letter-spacing: 8px; font-size: 2.5rem;">SAI</h1>
+            <div class="reveal-text">
+Happy Birthday ❤️
+I hope this year gives you everything you’ve been wishing for… and if not, I’m here to make up the difference.
+
+You are not just another year in my life, you’re the reason my days feel warmer and my future feels brighter.
+
+If love is a wish, you’re the one I’d make every single time.
+
+Today is about you, but my heart chooses you every day.
+            </div>
+            <div onclick="clinkGlass()" style="margin-top:25px; cursor:pointer;"><span style="font-size: 4.5rem; filter: drop-shadow(0 0 20px var(--gold));">🥂</span></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let speedMult = 0.5;
+        
+        const pickups = [
+            "Are you a Wi-Fi signal? Because I’m feeling a strong connection.",
+            "I was going to wait three days to text… but I’m bad at waiting when I like someone.",
+            "Do you believe in fate, or should I accidentally bump into you again?",
+            "Are you made of copper and tellurium? Because you’re Cu-Te.",
+            "I’m not good at math, but you + me feels right.",
+            "Is your name Google? Because you’ve got everything I’m searching for.",
+            "Are you this attractive on purpose, or is it just effortless?",
+            "I was fine before I saw you… now I’m distracted.",
+            "Quick question—how are you single?",
+            "I don’t usually do this, but I’d regret it if I didn’t talk to you.",
+            "I saw you and thought, ‘I need to know his story.’",
+            "You look like trouble… the kind I’m willing to risk.",
+            "Are you a parking ticket? Because you’ve got ‘fine’ written all over you.",
+            "Do you have a Band-Aid? I just scraped my knee falling for you."
+        ];
+
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+
+        class Particle {
+            constructor(x, y, speed, color, radius) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.radius = radius || Math.random() * 2;
+                this.color = color || (Math.random() > 0.8 ? '#fff0ad' : '#e2b04a');
+                this.opacity = Math.random() * 0.6 + 0.2;
+            }
+            update() {
+                this.x += this.vx * speedMult; this.y += this.vy * speedMult;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+                }
+            }
+            draw() { 
+                ctx.shadowBlur = speedMult > 5 ? 15 : 0;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color; 
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill(); 
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // High density golden dust
+        for (let i = 0; i < 250; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.fillStyle = 'rgba(1, 2, 4, 0.15)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function ignite() {
+            speedMult = 40; setTimeout(() => speedMult = 0.7, 900);
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('timer-view').style.display = 'block';
+            startTimer(); spawnHeart();
+        }
+
+        function spawnHeart() {
+            if(document.getElementById('timer-view').style.display === 'none') return;
+            const heart = document.createElement('div');
+            heart.className = 'heart-orb';
+            heart.style.left = (Math.random() * (window.innerWidth - 100) + 50) + 'px';
+            heart.style.top = (Math.random() * (window.innerHeight - 300) + 150) + 'px';
+            
+            heart.onclick = (e) => {
+                e.stopPropagation();
+                shatterIntensity(e.clientX, e.clientY);
+                showText(e.clientY);
+                heart.remove();
+            };
+            document.getElementById('timer-view').appendChild(heart);
+            setTimeout(spawnHeart, 4000);
+        }
+
+        function shatterIntensity(x, y) {
+            speedMult = 25; 
+            // Gold Supernova Shockwave
+            for(let i=0; i<80; i++) particles.push(new Particle(x, y, 30, '#fff0ad', Math.random()*3));
+            for(let i=0; i<30; i++) particles.push(new Particle(x, y, 20, '#ff3e3e', 2));
+            setTimeout(() => speedMult = 0.7, 500);
+            confetti({ particleCount: 80, spread: 360, origin: { x: x/window.innerWidth, y: y/window.innerHeight }, colors: ['#e2b04a', '#fff0ad', '#ff3e3e'], gravity: 0.4 });
+        }
+
+        function showText(yPos) {
+            const container = document.createElement('div');
+            container.className = 'pickup-box';
+            container.style.top = (yPos - 130) + 'px';
+            const content = document.createElement('div');
+            content.className = 'pickup-content';
+            content.innerText = pickups[Math.floor(Math.random()*pickups.length)];
+            container.appendChild(content);
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 2500);
+        }
+
+        function startTimer() {
+            let time = 60;
+            const interval = setInterval(() => {
+                time--;
+                document.getElementById('clock').innerText = `00:${time.toString().padStart(2, '0')}`;
+                if (time <= 0) { clearInterval(interval); reveal(); }
+            }, 1000);
+        }
+
+        function reveal() {
+            document.getElementById('timer-view').style.display = 'none';
+            const sv = document.getElementById('surprise-view');
+            sv.style.display = 'flex'; setTimeout(() => sv.style.opacity = '1', 50);
+            document.getElementById('music').play();
+            speedMult = 60; 
+            confetti({ particleCount: 400, spread: 150, origin: { y: 0.6 }, colors: ['#e2b04a', '#fff0ad', '#ff3e3e'] });
+        }
+
+        function clinkGlass() { confetti({ particleCount: 200, spread: 360, colors: ['#e2b04a', '#fff0ad', '#ff3e3e'] }); }
+    </script>
+</body>
+</html>
