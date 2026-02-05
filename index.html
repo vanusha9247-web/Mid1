@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Birthday Mission for Sai</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #010409; color: white;
+            font-family: -apple-system, system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        #sky {
+            position: fixed; inset: 0; z-index: -1;
+            background: #010409;
+        }
+
+        .aurora {
+            position: absolute; width: 140%; height: 60%;
+            left: -20%; opacity: 0.5;
+            animation: drift 10s infinite ease-in-out alternate;
+        }
+        .green { 
+            top: 10%; 
+            background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.6) 0%, transparent 75%);
+        }
+        .blue { 
+            top: 25%; 
+            background: radial-gradient(ellipse at center, rgba(0, 229, 255, 0.5) 0%, transparent 75%);
+            animation-delay: -4s;
+        }
+
+        @keyframes drift {
+            from { transform: translate(-5%, -5%) scale(1); }
+            to { transform: translate(5%, 5%) scale(1.1); }
+        }
+
+        #overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: #010409; display: flex; align-items: center; justify-content: center;
+        }
+        .vibe-button {
+            padding: 22px 35px; font-size: 1rem; font-weight: 900;
+            color: #fbbf24; border: 2px solid #fbbf24; background: transparent;
+            border-radius: 12px; text-transform: uppercase; letter-spacing: 4px;
+            text-align: center;
+        }
+
+        #timer-box {
+            position: fixed; top: 45px; right: 25px; z-index: 100;
+        }
+        #timer { font-size: 3rem; font-weight: 800; color: #00e5ff; margin: 0; }
+
+        .card {
+            position: fixed; width: 260px; padding: 20px;
+            background: rgba(255, 255, 255, 0.1); 
+            -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px);
+            border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.3);
+            text-align: center; font-size: 1.1rem;
+            animation: moveUp 14s linear forwards;
+            z-index: 50;
+        }
+        @keyframes moveUp {
+            0% { transform: translateY(110vh); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-30vh); opacity: 0; }
+        }
+
+        /* MASSIVE SPARKLES */
+        .dot {
+            position: absolute; width: 6px; height: 6px; border-radius: 50%;
+            pointer-events: none; z-index: 999;
+            animation: massiveBurst 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        @keyframes massiveBurst {
+            0% { opacity: 1; transform: translate(0, 0) scale(1.5); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+        }
+
+        #final {
+            display: none; position: fixed; inset: 0; z-index: 500;
+            background: rgba(1, 4, 9, 0.95); align-items: center; justify-content: center;
+            padding: 25px; text-align: center;
+        }
+        .final-box { 
+            border: 1px solid #fbbf24; padding: 35px 25px; border-radius: 25px; 
+            background: rgba(0,0,0,0.6);
+            transition: transform 0.1s;
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="overlay">
+        <button class="vibe-button" onclick="startSurprise()">
+            LAUNCH MISSION SAI<br>
+            <span style="font-size: 0.6rem; opacity: 0.7;">[ TAP TO START ]</span>
+        </button>
+    </div>
+
+    <div id="sky">
+        <div class="aurora green"></div>
+        <div class="aurora blue"></div>
+    </div>
+
+    <div id="timer-box"><div id="timer">02:00</div></div>
+
+    <div id="final">
+        <div id="f-box" class="final-box">
+            <h1 style="color:#fbbf24;">Happy Birthday, Sai! ❤️</h1>
+            <p id="final-txt" style="line-height: 1.8; font-size: 1.1rem; color: #cbd5e1;"></p>
+            <div style="font-size: 6rem; margin-top: 20px; cursor: pointer;" onclick="toastBurst(event)">🥂</div>
+            <p style="font-size: 0.8rem; color: #fbbf24; opacity: 0.8; margin-top: 10px;">(Tap the glasses to celebrate!)</p>
+        </div>
+    </div>
+
+    <audio id="music" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+
+    <script>
+        const msgs = [
+            "Are you a Wi-Fi signal? Because I’m feeling a strong connection.",
+            "I was going to wait three days to text… but I’m bad at waiting.",
+            "Do you believe in fate, or should I bump into you again?",
+            "Are you made of copper and tellurium? Because you’re Cu-Te.",
+            "I’m not good at math, but you + me feels right.",
+            "Is your name Google? You’ve got everything I’m searching for.",
+            "Are you this attractive on purpose, or is it effortless?",
+            "I was fine before I saw you… now I’m distracted.",
+            "Quick question—how are you single?",
+            "I saw you and thought, ‘I need to know your story.’",
+            "You look like trouble… the kind I’m willing to risk.",
+            "Are you a parking ticket? You’ve got ‘fine’ written all over you.",
+            "Do you have a Band-Aid? I just scraped my knee falling for you."
+        ];
+
+        let time = 120;
+        let index = 0;
+
+        function startSurprise() {
+            document.getElementById('overlay').style.display = 'none';
+            try { document.getElementById('music').play(); } catch(e) {}
+            spawnCard();
+            setInterval(() => { if(time > 2) spawnCard(); }, 4000);
+            const countdown = setInterval(() => {
+                time--;
+                let m = Math.floor(time/60), s = time % 60;
+                document.getElementById('timer').innerText = m + ":" + (s < 10 ? "0"+s : s);
+                if(time <= 0) { clearInterval(countdown); showEnd(); }
+            }, 1000);
+        }
+
+        function createSparkles(x, y, count, power) {
+            const colors = ["#fbbf24", "#10b981", "#00e5ff", "#ffffff", "#ffd700", "#ff69b4"];
+            for(let i=0; i<count; i++) {
+                const d = document.createElement('div');
+                d.className = 'dot';
+                d.style.left = x + 'px'; 
+                d.style.top = y + 'px';
+                d.style.background = colors[i % colors.length];
+                
+                // Angle logic to cover all 360 degrees
+                const angle = Math.random() * Math.PI * 2;
+                // Power variation so some dots go further than others
+                const v = (Math.random() * power) + (power * 0.5); 
+                const tx = Math.cos(angle) * v;
+                const ty = Math.sin(angle) * v;
+                
+                d.style.setProperty('--tx', tx + 'px');
+                d.style.setProperty('--ty', ty + 'px');
+                
+                document.body.appendChild(d);
+                setTimeout(() => d.remove(), 1500);
+            }
+        }
+
+        function spawnCard() {
+            const c = document.createElement('div');
+            c.className = 'card';
+            c.innerText = msgs[index];
+            c.style.left = Math.random() * (window.innerWidth - 280) + "px";
+            c.onclick = (e) => {
+                createSparkles(e.clientX, e.clientY, 100, 600);
+                c.remove();
+            };
+            document.body.appendChild(c);
+            index = (index + 1) % msgs.length;
+        }
+
+        function showEnd() {
+            document.querySelectorAll('.card').forEach(el => el.remove());
+            document.getElementById('timer-box').style.display = 'none';
+            document.getElementById('final').style.display = 'flex';
+            document.getElementById('final-txt').innerText = "I hope this year gives you everything you’ve been wishing for…\n\nYou are not just another year in my life, you’re the reason my days feel warmer.\n\nIf love is a wish, you’re the one I’d make every single time.\n\nToday is about you, but my heart chooses you every day.";
+        }
+
+        function toastBurst(e) {
+            // Shake the box for impact
+            const box = document.getElementById('f-box');
+            box.classList.add('shake');
+            setTimeout(() => box.classList.remove('shake'), 400);
+
+            // Massive Screen-Covering Burst (800px reach)
+            createSparkles(e.clientX, e.clientY, 250, 900);
+        }
+    </script>
+</body>
+</html>
