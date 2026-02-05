@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Surprise</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: #010409;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #e2e8f0;
+        }
+
+        /* Northern Lights Background */
+        .aurora-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            z-index: -2;
+        }
+
+        .aurora-glow {
+            position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
+            background: radial-gradient(circle at 50% 50%, #1e40af33, #10b98133, #7c3aed22, transparent);
+            animation: auroraMove 25s infinite alternate;
+            filter: blur(80px);
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 1.2s ease-in-out;
+        }
+
+        /* The Pulse Effect */
+        .pulse-active {
+            transform: scale(1.15);
+            opacity: 0.9;
+            background: radial-gradient(circle at 50% 50%, #22d3ee55, #34d39955, #a78bfa44, transparent);
+        }
+
+        #wrapper {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100vh; text-align: center;
+            position: relative; z-index: 10;
+        }
+
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(1, 4, 9, 0.98); z-index: 1000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .start-btn {
+            padding: 20px 40px; font-size: 1rem; font-weight: 700;
+            background: transparent; color: #10b981; border: 1px solid #10b981;
+            border-radius: 4px; cursor: pointer; letter-spacing: 4px;
+            transition: all 0.4s ease;
+        }
+
+        .start-btn:hover { background: rgba(16, 185, 129, 0.1); box-shadow: 0 0 30px rgba(16, 185, 129, 0.3); }
+
+        #timer {
+            font-size: clamp(5rem, 22vw, 9rem); font-weight: 900;
+            color: #f8fafc; text-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
+            margin: 0; font-variant-numeric: tabular-nums;
+        }
+
+        .sub-label {
+            text-transform: uppercase; letter-spacing: 1rem;
+            font-size: 0.7rem; color: #475569; margin-bottom: 10px;
+        }
+
+        #pickup-container {
+            position: fixed; top: 65%; left: 50%;
+            transform: translate(-50%, -50%); z-index: 100;
+        }
+
+        .message-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(25px);
+            padding: 30px 60px; border-radius: 4px;
+            border-bottom: 2px solid #10b981;
+            font-size: 1.4rem; font-weight: 300;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+            animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #fff; max-width: 85vw;
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(50px); filter: blur(20px); }
+            100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        #final-screen {
+            display: none; padding: 20px; max-width: 700px;
+        }
+
+        .final-title { font-size: 4rem; color: #fbbf24; margin-bottom: 20px; font-weight: 900; }
+        .final-text { font-size: 1.2rem; line-height: 2.2; color: #cbd5e1; white-space: pre-line; }
+        
+        .champagne-btn {
+            font-size: 5rem; cursor: pointer; margin-top: 40px;
+            display: inline-block; filter: drop-shadow(0 0 15px gold);
+            transition: transform 0.2s;
+        }
+        .champagne-btn:active { transform: scale(1.2); }
+
+        #particle-canvas {
+            position: fixed; top: 0; left: 0; pointer-events: none; z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="overlay">
+        <button class="start-btn" onclick="startSurprise()">INITIATE MISSION: BIRTHDAY SURPRISE</button>
+    </div>
+
+    <div class="aurora-bg"><div id="glow" class="aurora-glow"></div></div>
+    <canvas id="particle-canvas"></canvas>
+
+    <div id="wrapper">
+        <div id="countdown-ui">
+            <div class="sub-label">T-Minus</div>
+            <div id="timer">02:00</div>
+        </div>
+
+        <div id="final-screen">
+            <h1 class="final-title">Happy Birthday ❤️</h1>
+            <p class="final-text" id="final-text"></p>
+            <div class="champagne-btn" onclick="triggerEffect('gold')">🥂</div>
+        </div>
+    </div>
+
+    <div id="pickup-container"></div>
+
+    <script>
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        const music = document.getElementById('bgMusic');
+        const glow = document.getElementById('glow');
+        let particles = [];
+        
+        const lines = [
+            { t: "Are you a Wi-Fi signal? Because I’m feeling a strong connection.", effect: "cyan" },
+            { t: "I was going to wait three days to text… but I’m bad at waiting when I like someone.", effect: "white" },
+            { t: "Do you believe in fate, or should I accidentally bump into you again?", effect: "purple" },
+            { t: "Are you made of copper and tellurium? Because you’re Cu-Te.", effect: "gold" },
+            { t: "I’m not good at math, but you + me feels right.", effect: "green" },
+            { t: "Is your name Google? Because you’ve got everything I’m searching for.", effect: "cyan" },
+            { t: "Are you this attractive on purpose, or is it just effortless?", effect: "rose" },
+            { t: "I was fine before I saw you… now I’m distracted.", effect: "white" },
+            { t: "Quick question—how are you single?", effect: "gold" },
+            { t: "I don’t usually do this, but I’d regret it if I didn’t talk to you.", effect: "purple" },
+            { t: "I saw you and thought, ‘I need to know your story.’", effect: "cyan" },
+            { t: "You look like trouble… the kind I’m willing to risk.", effect: "green" },
+            { t: "Are you a parking ticket? Because you’ve got ‘fine’ written all over you.", effect: "gold" },
+            { t: "Do you have a Band-Aid? I just scraped my knee falling for you.", effect: "rose" }
+        ];
+
+        let timeLeft = 120;
+        let lineIndex = 0;
+
+        function startSurprise() {
+            document.getElementById('overlay').style.display = 'none';
+            music.play();
+            startTimers();
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y, color, type) {
+                this.x = x; this.y = y; this.color = color;
+                this.size = Math.random() * (type === 'rose' ? 14 : 6) + 2;
+                this.speedX = (Math.random() - 0.5) * 12;
+                this.speedY = (Math.random() - 0.5) * 12;
+                this.gravity = type === 'rose' ? 0.07 : 0;
+                this.life = 1; this.decay = Math.random() * 0.012 + 0.005;
+                this.type = type;
+                this.rot = Math.random() * Math.PI;
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY + this.gravity;
+                this.life -= this.decay;
+                this.rot += 0.15;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rot);
+                ctx.fillStyle = this.color;
+                if(this.type === 'rose') {
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.size, this.size/1.8, 0, 0, Math.PI*2);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+                }
+                ctx.restore();
+            }
+        }
+
+        function triggerEffect(type) {
+            const colors = { gold: '#fbbf24', rose: '#fb7185', cyan: '#22d3ee', green: '#34d399', white: '#ffffff', purple: '#a78bfa' };
+            const color = colors[type] || colors.white;
+            
+            // Background Pulse
+            glow.classList.add('pulse-active');
+            setTimeout(() => glow.classList.remove('pulse-active'), 1200);
+
+            for(let i=0; i<150; i++) {
+                particles.push(new Particle(window.innerWidth/2, window.innerHeight/2, color, type));
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function startTimers() {
+            const timerInt = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft/60);
+                let s = timeLeft % 60;
+                document.getElementById('timer').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                if(timeLeft <= 0) {
+                    clearInterval(timerInt);
+                    clearInterval(popupInt);
+                    showFinal();
+                }
+            }, 1000);
+
+            const popupInt = setInterval(() => {
+                if(timeLeft > 2) {
+                    const container = document.getElementById('pickup-container');
+                    container.innerHTML = '';
+                    const item = lines[lineIndex];
+                    const div = document.createElement('div');
+                    div.className = 'message-card';
+                    div.textContent = item.t;
+                    container.appendChild(div);
+                    
+                    triggerEffect(item.effect);
+                    
+                    lineIndex = (lineIndex + 1) % lines.length;
+                    setTimeout(() => { if(div) div.style.opacity = '0'; }, 3200);
+                }
+            }, 4000);
+        }
+
+        function showFinal() {
+            document.getElementById('countdown-ui').style.display = 'none';
+            document.getElementById('pickup-container').style.display = 'none';
+            const f = document.getElementById('final-screen');
+            f.style.display = 'block';
+            document.getElementById('final-text').textContent = `I hope this year gives you everything you’ve been wishing for…\nand if not, I’m here to make up the difference.\n\nYou are not just another year in my life,\nyou’re the reason my days feel warmer\nand my future feels brighter.\n\nIf love is a wish,\nyou’re the one I’d make\nevery single time.\n\nToday is about you,\nbut my heart chooses you\nevery day.`;
+            
+            // Loop gold sparks for the finale
+            setInterval(() => triggerEffect('gold'), 2500);
+        }
+    </script>
+</body>
+</html>
