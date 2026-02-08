@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Sai! ❤️</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --ios-dark: #000000;
+            --love-red: #ff3b30;
+            --glass-white: rgba(255, 255, 255, 0.95);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(circle at center, #1c1c1e 0%, #000000 100%);
+            color: white; overflow: hidden; display: flex; justify-content: center;
+        }
+
+        #ui-wrapper { text-align: center; width: 100%; max-width: 400px; margin-top: 10vh; padding: 20px; z-index: 10; }
+
+        h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 10px; }
+        .sub-text { font-size: 1.1rem; opacity: 0.5; margin-bottom: 40px; display: block; }
+        .question-text { font-size: 1.8rem; font-weight: 500; margin-bottom: 30px; }
+
+        .btn-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+        .btn {
+            padding: 16px 0; width: 240px; border-radius: 14px; border: none;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+        }
+
+        #yes-btn { background: white; color: black; z-index: 5; }
+        #no-btn { 
+            background: rgba(255, 255, 255, 0.15); color: white; 
+            border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); z-index: 1000;
+        }
+
+        /* Silly Cat / Teddy Reaction Popups */
+        .reaction-popup {
+            position: absolute; background: var(--glass-white); color: black;
+            padding: 12px; border-radius: 20px; font-weight: bold;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: popAndFade 1.8s forwards;
+            pointer-events: none; z-index: 2000;
+        }
+        .reaction-popup img { width: 90px; height: 90px; border-radius: 10px; margin-bottom: 5px; }
+
+        @keyframes popAndFade {
+            0% { transform: scale(0.5); opacity: 0; }
+            20% { transform: scale(1); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+
+        #screen2 { display: none; margin-top: 5vh; }
+        .petal { position: absolute; top: -50px; pointer-events: none; font-size: 24px; animation: fall linear infinite; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+
+        .envelope-row { display: flex; justify-content: center; gap: 20px; margin-top: 40px; }
+        .envelope {
+            width: 80px; height: 55px; background: #b91d1d; border-radius: 6px; 
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+            border: 1px solid #7f1d1d; font-size: 20px;
+        }
+
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 5000; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+        }
+        #modal img { border-radius: 20px; margin-bottom: 15px; border: 3px solid white; }
+        #modal h2 { margin: 10px 0; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-wrapper">
+        <div id="screen1">
+            <h1>Happy Birthday, Sai! 🎂</h1>
+            <span class="sub-text">From your loving wife...</span>
+            <div class="question-text">Do you love me?</div>
+            <div class="btn-container">
+                <button class="btn" id="yes-btn" onclick="celebrate()">Yes, I do</button>
+                <button class="btn" id="no-btn">No</button>
+            </div>
+        </div>
+
+        <div id="screen2">
+            <h1 style="color: var(--love-red);">YAYYY! ❤️</h1>
+            <p>I love you too, Sai! You're my everything.</p>
+            <div class="envelope-row">
+                <div class="envelope" onclick="openGift(1)">📩</div>
+                <div class="envelope" onclick="openGift(2)">📩</div>
+                <div class="envelope" onclick="openGift(3)">📩</div>
+            </div>
+            <p style="margin-top: 30px; opacity: 0.5;">Tap to open your gifts...</p>
+        </div>
+    </div>
+
+    <div id="modal" onclick="this.style.display='none'">
+        <div id="modal-body"></div>
+        <p style="color: #888; margin-top: 20px;">(Tap to close)</p>
+    </div>
+
+    <audio id="music" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-love.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const noBtn = document.getElementById('no-btn');
+        const s1 = document.getElementById('screen1');
+        const s2 = document.getElementById('screen2');
+        const music = document.getElementById('music');
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modal-body');
+
+        // Sad Teddy & Silly Cat Reactions for the "No" Button
+        const reactions = [
+            {t: "Sai... why? 🥺", img: "https://media.tenor.com/On79Z7uQY6YAAAAi/anime-cry.gif"}, // Crying
+            {t: "Try again! 😿", img: "https://media.tenor.com/7S1PCHB-Y0AAAAAi/crying-cat-cat-crying.gif"}, // Crying Cat
+            {t: "Hurtful! 💔", img: "https://media.tenor.com/mO2W9_9P-pYAAAAi/sad-teddy-bear.gif"}, // Sad Teddy
+            {t: "Rude! 😖", img: "https://media.tenor.com/XU9_y8S9W38AAAAi/silly-cat-cat.gif"} // Silly Cat
+        ];
+
+        function moveNo() {
+            const x = Math.random() * (window.innerWidth - 150);
+            const y = Math.random() * (window.innerHeight - 80);
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+
+            const popup = document.createElement('div');
+            popup.className = 'reaction-popup';
+            const pick = reactions[Math.floor(Math.random() * reactions.length)];
+            popup.innerHTML = `<img src="${pick.img}"> <span>${pick.t}</span>`;
+            popup.style.left = (x > window.innerWidth / 2 ? x - 130 : x + 70) + 'px';
+            popup.style.top = (y - 80) + 'px';
+            document.body.appendChild(popup);
+            setTimeout(() => popup.remove(), 1800);
+        }
+
+        noBtn.addEventListener('mouseover', moveNo);
+        noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveNo(); });
+
+        function celebrate() {
+            s1.style.display = 'none';
+            s2.style.display = 'block';
+            music.play();
+            setInterval(makePetal, 300);
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+
+        function makePetal() {
+            const p = document.createElement('div');
+            p.className = 'petal'; p.innerHTML = '🌹';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 5000);
+        }
+
+        function openGift(n) {
+            modal.style.display = 'flex';
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            
+            if(n === 1) {
+                modalBody.innerHTML = `
+                    <img src="https://media.tenor.com/xscO_6H0TqAAAAAi/bears-with-flowers-love.gif" width="250">
+                    <h2>For you, my King! 🌹</h2>
+                    <p>A huge bouquet for Sai!</p>`;
+            } else if(n === 2) {
+                modalBody.innerHTML = `
+                    <img src="https://media.tenor.com/0uBv6n7pG90AAAAi/mochi-peach.gif" width="250">
+                    <h2>Unlimited Cuddles! 🤗</h2>
+                    <p>Teddies say you're stuck with me!</p>`;
+            } else {
+                modalBody.innerHTML = `
+                    <img src="https://media.tenor.com/p9fP_fKk7-AAAAAi/mochi-peach-cat.gif" width="250">
+                    <h2>Birthday Kisses! 💋</h2>
+                    <p>Mwah! Happy Birthday Hubby!</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
