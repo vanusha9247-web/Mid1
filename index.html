@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Sai ❤️</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100dvh; background: #000; color: white; font-family: -apple-system, sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        #ui-wrapper { text-align: center; width: 90%; max-width: 350px; }
+        .btn { padding: 16px 0; width: 100%; border-radius: 15px; border: none; font-weight: bold; font-size: 1.1rem; margin-top: 20px; z-index: 10; position: relative; }
+        #yes-btn { background: white; color: black; }
+        #no-btn { background: #2c2c2e; color: white; position: absolute; left: 50%; transform: translateX(-50%); top: 380px; transition: 0.1s; }
+        
+        /* Character drawing using CSS/SVG */
+        .character-box { width: 120px; height: 120px; margin: 0 auto; position: relative; }
+        .cat-face { width: 100px; height: 80px; background: #fff; border-radius: 50% 50% 45% 45%; position: relative; margin-top: 20px; }
+        .cat-ear { width: 30px; height: 30px; background: #fff; position: absolute; top: -10px; border-radius: 5px; transform: rotate(45deg); }
+        .cat-eye { width: 8px; height: 8px; background: #000; position: absolute; top: 35px; border-radius: 50%; animation: cry 1s infinite; }
+        
+        @keyframes cry { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.1); } }
+        
+        .reaction-popup { position: fixed; background: white; color: black; padding: 10px; border-radius: 15px; z-index: 3000; text-align: center; width: 140px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: fade 1.5s forwards; }
+        
+        @keyframes fade { 0% { opacity: 0; transform: scale(0.8); } 20% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-50px); } }
+        
+        #screen2 { display: none; }
+        .envelope { width: 75px; height: 60px; background: #b91d1d; border-radius: 10px; display: inline-block; margin: 10px; line-height: 60px; font-size: 30px; }
+        
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 5000; flex-direction: column; justify-content: center; align-items: center; }
+        .gift-art { font-size: 80px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-wrapper">
+        <div id="screen1">
+            <h1>Happy Birthday, Sai! 🎂</h1>
+            <p>From your loving wife...</p>
+            <h2 style="margin: 40px 0;">Do you love me?</h2>
+            <button class="btn" id="yes-btn" onclick="celebrate()">Yes, I do</button>
+            <button class="btn" id="no-btn">No</button>
+        </div>
+
+        <div id="screen2">
+            <h1 style="color: #ff3b30;">YAYYY! ❤️</h1>
+            <div style="margin-top: 30px;">
+                <div class="envelope" onclick="openGift(1)">📩</div>
+                <div class="envelope" onclick="openGift(2)">📩</div>
+                <div class="envelope" onclick="openGift(3)">📩</div>
+            </div>
+            <p style="opacity: 0.5; margin-top: 20px;">Open your gifts, Sai!</p>
+        </div>
+    </div>
+
+    <div id="modal" onclick="this.style.display='none'">
+        <div id="modal-body"></div>
+        <p style="color: #666; margin-top: 20px;">(Tap to close)</p>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('no-btn');
+        
+        // This draws a "Silly Cat" character directly in the popup
+        function createCatSVG() {
+            return `<div class="character-box">
+                <div class="cat-face">
+                    <div class="cat-ear" style="left:5px"></div>
+                    <div class="cat-ear" style="right:5px"></div>
+                    <div class="cat-eye" style="left:25px"></div>
+                    <div class="cat-eye" style="right:25px"></div>
+                    <div style="width:10px; height:5px; background:pink; position:absolute; top:50px; left:45px; border-radius:5px;"></div>
+                </div>
+            </div>`;
+        }
+
+        function moveNo(e) {
+            if(e) e.preventDefault();
+            const x = Math.random() * (window.innerWidth - 150);
+            const y = Math.random() * (window.innerHeight - 150);
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+
+            const popup = document.createElement('div');
+            popup.className = 'reaction-popup';
+            popup.innerHTML = createCatSVG() + `<div>Sai, why? 🥺</div>`;
+            popup.style.left = (x > window.innerWidth/2 ? x-120 : x+40) + 'px';
+            popup.style.top = (y - 140) + 'px';
+            document.body.appendChild(popup);
+            setTimeout(() => popup.remove(), 1500);
+        }
+
+        noBtn.addEventListener('touchstart', moveNo);
+
+        function celebrate() {
+            document.getElementById('screen1').style.display = 'none';
+            document.getElementById('screen2').style.display = 'block';
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+
+        function openGift(n) {
+            document.getElementById('modal').style.display = 'flex';
+            let art = ""; let title = "";
+            if(n===1) { art = "🐱🌹"; title = "For My King!"; }
+            if(n===2) { art = "🧸🤗"; title = "Cuddles!"; }
+            if(n===3) { art = "🐱💋"; title = "Kisses!"; }
+            document.getElementById('modal-body').innerHTML = `<div class="gift-art">${art}</div><h2>${title}</h2>`;
+        }
+    </script>
+</body>
+</html>
