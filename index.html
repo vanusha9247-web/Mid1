@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Sai</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --gold: #ffd700;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: var(--bg-color);
+            font-family: 'Poppins', sans-serif; color: white;
+        }
+
+        .screen {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; text-align: center; z-index: 10;
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- SCREEN 1: HEARTS --- */
+        .heart {
+            position: absolute; background: #ff4d4d;
+            width: 15px; height: 15px; transform: rotate(-45deg);
+            animation: floatHearts 6s infinite linear;
+        }
+        .heart::before, .heart::after {
+            content: ''; width: 15px; height: 15px;
+            background: #ff4d4d; border-radius: 50%; position: absolute;
+        }
+        .heart::before { top: -8px; left: 0; }
+        .heart::after { left: 8px; top: 0; }
+
+        @keyframes floatHearts {
+            0% { transform: rotate(-45deg) translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: rotate(-45deg) translateY(-20vh) scale(1.2); opacity: 0; }
+        }
+
+        /* --- SCREEN 2: REALISTIC CAKE --- */
+        .cake-container { position: relative; width: 200px; height: 200px; cursor: pointer; }
+        .cake-layer {
+            position: absolute; bottom: 0; width: 100%;
+            background: #6d4c41; border-radius: 10px 10px 0 0;
+            border-bottom: 4px solid #4e342e;
+        }
+        .layer-bottom { height: 60px; width: 180px; left: 10px; }
+        .layer-top { height: 50px; width: 140px; left: 30px; bottom: 60px; background: #8d6e63; }
+        .icing {
+            position: absolute; top: 0; width: 100%; height: 15px;
+            background: #f48fb1; border-radius: 10px 10px 0 0;
+        }
+        .candle-on-cake {
+            position: absolute; width: 8px; height: 30px;
+            background: #fff; top: -30px; left: 50%; transform: translateX(-50%);
+        }
+        .flame {
+            position: absolute; width: 12px; height: 18px; background: orange;
+            border-radius: 50% 50% 20% 20%; top: -20px; left: -2px;
+            animation: flicker 0.3s infinite;
+        }
+        @keyframes flicker { 50% { transform: scale(1.2); opacity: 0.8; } }
+
+        /* --- SCREEN 4: GIFT BOXES --- */
+        .gift-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 20px; width: 90%; max-width: 500px;
+        }
+        .real-gift {
+            position: relative; width: 120px; height: 100px;
+            background: #e74c3c; border-radius: 8px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            margin: auto; display: flex; align-items: center; justify-content: center;
+        }
+        .ribbon-v {
+            position: absolute; width: 20px; height: 100%; background: #f1c40f;
+        }
+        .ribbon-h {
+            position: absolute; width: 100%; height: 20px; background: #f1c40f;
+        }
+
+        /* --- SPARKLES --- */
+        .sparkle {
+            position: absolute; background: var(--gold); border-radius: 50%;
+            animation: twinkle 2s infinite; pointer-events: none;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } }
+
+        .btn { padding: 12px 25px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; margin: 10px; }
+        .btn-yes { background: #ff4d4d; color: white; }
+        .btn-no { background: #333; color: white; }
+    </style>
+</head>
+<body id="body">
+
+    <div id="bg-elements"></div>
+
+    <div id="screen1" class="screen">
+        <h1 style="padding: 20px;">I have something special for you today, Sai...</h1>
+        <div style="font-size: 80px; cursor: pointer;" onclick="goCake()">🎁</div>
+    </div>
+
+    <div id="screen2" class="screen hidden">
+        <h2>It's wish time!</h2>
+        <div class="cake-container">
+            <div class="cake-layer layer-bottom"><div class="icing"></div></div>
+            <div class="cake-layer layer-top">
+                <div class="icing"></div>
+                <div class="candle-on-cake" style="left: 20%;" onclick="blow(this)">🕯️<div class="flame"></div></div>
+                <div class="candle-on-cake" style="left: 50%;" onclick="blow(this)">🕯️<div class="flame"></div></div>
+                <div class="candle-on-cake" style="left: 80%;" onclick="blow(this)">🕯️<div class="flame"></div></div>
+            </div>
+        </div>
+        <p>Touch the candles on the cake!</p>
+    </div>
+
+    <div id="screen3" class="screen hidden">
+        <p style="padding: 20px; font-size: 1.2rem;">I've something for you.. not a gift you can hold,<br>but something you'll feel..<br><br>Just a little surprise, made with love....only for you...<br><br><b>Wanna see???</b></p>
+        <div id="anime-msg" style="min-height: 100px; font-weight: bold;"></div>
+        <div>
+            <button class="btn btn-yes" onclick="goGrid()">YES</button>
+            <button class="btn btn-no" onclick="scold()">NO</button>
+        </div>
+    </div>
+
+    <div id="screen4" class="screen hidden">
+        <div class="gift-grid" id="grid"></div>
+        <h2 id="final-tag" class="hidden" style="color: pink; margin-top: 20px;">Happy Birthday Babbyyy.. Love ❤️</h2>
+    </div>
+
+    <script>
+        const bg = document.getElementById('bg-elements');
+        const body = document.getElementById('body');
+
+        // Logic for Hearts
+        function spawnHearts() {
+            bg.innerHTML = '';
+            for(let i=0; i<30; i++){
+                let h = document.createElement('div');
+                h.className = 'heart';
+                h.style.left = Math.random() * 100 + 'vw';
+                h.style.animationDelay = Math.random() * 5 + 's';
+                bg.appendChild(h);
+            }
+        }
+        spawnHearts();
+
+        // Screen 2 Golden Sparkles
+        function goCake() {
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.remove('hidden');
+            bg.innerHTML = '';
+            for(let i=0; i<100; i++){
+                let s = document.createElement('div');
+                s.className = 'sparkle';
+                s.style.width = s.style.height = Math.random() * 5 + 'px';
+                s.style.left = Math.random() * 100 + 'vw';
+                s.style.top = Math.random() * 100 + 'vh';
+                s.style.animationDelay = Math.random() * 2 + 's';
+                bg.appendChild(s);
+            }
+        }
+
+        let blown = 0;
+        function blow(candle) {
+            const flame = candle.querySelector('.flame');
+            if(flame) {
+                flame.remove();
+                blown++;
+            }
+            if(blown === 3) {
+                confetti({spread: 180, particleCount: 150});
+                setTimeout(() => {
+                    document.getElementById('screen2').classList.add('hidden');
+                    document.getElementById('screen3').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        const animeResponses = [
+            "How dare you say no? 🔪👧🏻",
+            "Say yes or no cake for you! 😤💢",
+            "Sai, don't test my patience! 🔪😠",
+            "Is that your final answer? Think again! 🔥👊",
+            "I will hunt you down! 😈🔪",
+            "Cute but deadly... don't say no! 😤"
+        ];
+        function scold() {
+            document.getElementById('anime-msg').innerHTML = animeResponses[Math.floor(Math.random()*animeResponses.length)];
+        }
+
+        const rhymeData = [
+            { t: "Car lo untundi seat belt-uuu, ninnue chuste avthundi heart melt-uuu.. 🫠", b: "radial-gradient(circle, #ff9a9e, #fecfef)" },
+            { t: "Intlo untundhi mancham, nuvve naa prapancham.. 🌎", b: "conic-gradient(from 180deg, #30cfd0, #330867)" },
+            { t: "Kakinada loo famous kajaa, nuvve naa life ki yuvarajaa.. 👑", b: "linear-gradient(45deg, #fccb90, #d57eeb)" },
+            { t: "Rathri kuttindhi nannu dhoma.. nee pina puttindhi naku prema... 🦟❤️", b: "repeating-radial-gradient(#ff0844, #ffb199 10%)" },
+            { t: "Garden lo untadhi flower-uu.. nuvve na lover-uu... 🌹", b: "linear-gradient(135deg, #667eea, #764ba2)" },
+            { t: "Ma amma morning vesthundi muggu.. ninnu chusthey naku vasthundi siggu.. 🙈", b: "radial-gradient(circle, #a1c4fd, #c2e9fb)" }
+        ];
+
+        let openCount = 0;
+        function goGrid() {
+            document.getElementById('screen3').classList.add('hidden');
+            document.getElementById('screen4').classList.remove('hidden');
+            const grid = document.getElementById('grid');
+            bg.innerHTML = ''; // Clear for unique vibes
+
+            rhymeData.forEach((item, i) => {
+                let gift = document.createElement('div');
+                gift.className = 'real-gift';
+                gift.innerHTML = '<div class="ribbon-v"></div><div class="ribbon-h"></div>';
+                
+                gift.onclick = function() {
+                    body.style.background = item.b;
+                    this.innerHTML = `<span style="padding:10px; z-index:20;">${item.t}</span>`;
+                    this.style.background = "rgba(255,255,255,0.2)";
+                    this.style.width = "180px";
+                    this.style.height = "auto";
+                    this.style.padding = "10px";
+                    
+                    openCount++;
+                    if(openCount === 6) {
+                        document.getElementById('final-tag').classList.remove('hidden');
+                        confetti({particleCount: 500, spread: 200});
+                    }
+                };
+                grid.appendChild(gift);
+            });
+        }
+    </script>
+</body>
+</html>
