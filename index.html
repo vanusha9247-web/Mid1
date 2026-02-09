@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Motherboard Cake: Glitch Edition</title>
+    <style>
+        :root {
+            --cake-color: #3d2b1f;
+            --trace-color: #ffd700;
+            --chip-blue: #2196F3;
+            --chip-red: #f44336;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            margin: 0;
+            transition: background 0.1s;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        .cake-container {
+            position: relative;
+        }
+
+        /* The Mainboard Cake */
+        .cake-base {
+            width: 320px;
+            height: 160px;
+            background: var(--cake-color);
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 15px 0 #2a1d15;
+            border: 3px solid #5d4037;
+            transition: all 0.1s;
+        }
+
+        /* Circuit Traces */
+        .traces {
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(90deg, transparent 40px, var(--trace-color) 40px, var(--trace-color) 42px, transparent 42px),
+                linear-gradient(0deg, transparent 60px, var(--trace-color) 60px, var(--trace-color) 62px, transparent 62px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Glitch Animation Class */
+        .glitching {
+            animation: shake 0.1s infinite;
+            filter: hue-rotate(90deg) brightness(1.5);
+        }
+
+        @keyframes shake {
+            0% { transform: translate(2px, 1px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(1px, -2px); }
+        }
+
+        /* Chips as Buttons */
+        .chip {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            border-radius: 3px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        .chip:active { transform: scale(0.9); }
+
+        /* Candles */
+        .candles {
+            position: absolute;
+            top: -50px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .candle {
+            width: 14px;
+            height: 50px;
+            background: linear-gradient(to right, #e0e0e0, #bbb);
+            position: relative;
+        }
+
+        .flame {
+            width: 14px;
+            height: 22px;
+            background: radial-gradient(circle, #fff, orange, red);
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: -22px;
+            box-shadow: 0 0 15px orange;
+            animation: flicker 0.1s infinite alternate;
+            cursor: pointer;
+        }
+
+        .blown .flame { display: none; }
+
+        @keyframes flicker {
+            from { transform: scale(1); opacity: 0.8; }
+            to { transform: scale(1.2) rotate(3deg); opacity: 1; }
+        }
+
+        .status-box {
+            margin-top: 50px;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            min-width: 300px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cake-container" id="container">
+        <div class="candles">
+            <div class="candle" onclick="this.classList.add('blown')"><div class="flame"></div></div>
+            <div class="candle" onclick="this.classList.add('blown')"><div class="flame"></div></div>
+            <div class="candle" onclick="this.classList.add('blown')"><div class="flame"></div></div>
+        </div>
+        
+        <div class="cake-base" id="cake">
+            <div class="traces"></div>
+            <div class="chip" style="background: var(--chip-blue); top: 20px; left: 30px;" onclick="glitch()"></div>
+            <div class="chip" style="background: var(--chip-red); top: 90px; left: 220px;" onclick="glitch()"></div>
+            <div class="chip" style="background: #4CAF50; top: 40px; left: 160px;" onclick="glitch()"></div>
+        </div>
+    </div>
+
+    <div class="status-box" id="status">> SYSTEM_READY: Click chips to overclock</div>
+
+    <script>
+        function glitch() {
+            const cake = document.getElementById('cake');
+            const status = document.getElementById('status');
+            const body = document.body;
+            
+            // Trigger Glitch Effect
+            cake.classList.add('glitching');
+            body.style.backgroundColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+            status.innerText = "> WARNING: VOLTAGE_INSTABILITY_DETECTED";
+            
+            // Reset after 300ms
+            setTimeout(() => {
+                cake.classList.remove('glitching');
+                body.style.backgroundColor = '#1a1a1a';
+                status.innerText = "> SYSTEM_STABILIZED: Glitch Logged.";
+            }, 300);
+        }
+    </script>
+</body>
+</html>
