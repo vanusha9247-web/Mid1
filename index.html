@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Sai - Birthday Surprise</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --bg: #030303; --glass: rgba(255, 255, 255, 0.1); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Poppins', sans-serif; color: white; }
+
+        /* --- THE NOISE & AURORA ENGINE --- */
+        .aurora-container {
+            position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1;
+            background: #000; overflow: hidden; opacity: 0; transition: opacity 2s ease;
+        }
+        
+        /* Grainy Overlay */
+        .noise {
+            position: absolute; width: 100%; height: 100%; z-index: 2;
+            opacity: 0.15; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .blob-wrapper { width: 100%; height: 100%; filter: blur(80px); display: flex; }
+        .blob {
+            position: absolute; width: 60vw; height: 60vw; border-radius: 50%;
+            mix-blend-mode: screen; animation: float 25s infinite alternate; opacity: 0.7;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-10%, -10%) scale(1); }
+            100% { transform: translate(30%, 20%) scale(1.2) rotate(45deg); }
+        }
+
+        /* --- SCREENS --- */
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+
+        /* --- CAKE --- */
+        .cake-box { position: relative; width: 220px; height: 140px; background: #5d4037; border-radius: 20px 20px 10px 10px; margin-top: 60px; box-shadow: 0 15px 0 #3e2723; }
+        .icing-top { position: absolute; top: 0; width: 100%; height: 40px; background: #f48fb1; border-radius: 20px 20px 0 0; }
+        .candle-stick { position: absolute; width: 10px; height: 45px; background: #fff; top: -45px; cursor: pointer; border-radius: 4px; }
+        .flame-effect { position: absolute; top: -20px; left: -2px; width: 14px; height: 22px; background: radial-gradient(#fff, #ffa500); border-radius: 50% 50% 20% 20%; animation: flicker 0.1s infinite; }
+        @keyframes flicker { 0% { opacity: 0.9; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+
+        /* --- UI ELEMENTS --- */
+        .btn { padding: 18px 40px; border-radius: 40px; border: none; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; margin: 10px; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 25px; }
+        
+        .gift-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 450px; }
+        .gift-box { 
+            height: 110px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 18px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; backdrop-filter: blur(10px); transition: 0.4s; font-size: 13px; line-height: 1.4; font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="aurora-engine" class="aurora-container">
+        <div class="noise"></div>
+        <div class="blob-wrapper">
+            <div id="c1" class="blob" style="background: #ff0055; top: -20%; left: -10%;"></div>
+            <div id="c2" class="blob" style="background: #7000ff; bottom: -20%; right: -10%; animation-delay: -7s;"></div>
+            <div id="c3" class="blob" style="background: #00d4ff; top: 30%; left: 20%; animation-delay: -3s;"></div>
+        </div>
+    </div>
+
+    <div id="screen-intro" class="screen">
+        <h1 style="font-weight: 300; letter-spacing: 1px;">I have something special for you, Sai...</h1>
+        <div style="font-size: 90px; cursor: pointer; filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));" onclick="showCake()">🎁</div>
+    </div>
+
+    <div id="screen-cake" class="screen hidden">
+        <h2 style="letter-spacing: 2px;">MAKE A WISH!</h2>
+        <div class="cake-box">
+            <div class="icing-top"></div>
+            <div class="candle-stick" style="left: 20%;" onclick="blowCandle(this)">🕯️<div class="flame-effect"></div></div>
+            <div class="candle-stick" style="left: 50%;" onclick="blowCandle(this)">🕯️<div class="flame-effect"></div></div>
+            <div class="candle-stick" style="left: 80%;" onclick="blowCandle(this)">🕯️<div class="flame-effect"></div></div>
+        </div>
+        <p style="margin-top: 40px; opacity: 0.7;">Touch the flames to blow them out</p>
+    </div>
+
+    <div id="screen-tease" class="screen hidden">
+        <div class="glass-card">
+            <p>A little surprise, made with love... only for you.</p>
+            <h1 style="margin: 20px 0;">Wanna see???</h1>
+            <div id="angry-anime" style="height: 80px; font-size: 32px; color: #ff4d4d;"></div>
+            <div style="margin-top: 20px;">
+                <button class="btn" style="background: #fff; color: #000;" onclick="showGifts()">YES</button>
+                <button class="btn" style="background: #222; color: #fff; border: 1px solid #444;" onclick="triggerNo()">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-final" class="screen hidden">
+        <div class="gift-grid" id="main-grid"></div>
+        <h2 id="final-wish" class="hidden" style="margin-top: 30px; font-style: italic; animation: pulse 2s infinite;">Happy Birthday Babbyyy.. Love! ❤️</h2>
+    </div>
+
+    <script>
+        const engine = document.getElementById('aurora-engine');
+        const c1 = document.getElementById('c1');
+        const c2 = document.getElementById('c2');
+        const c3 = document.getElementById('c3');
+
+        function showCake() {
+            document.getElementById('screen-intro').classList.add('hidden');
+            document.getElementById('screen-cake').classList.remove('hidden');
+        }
+
+        let candlesOut = 0;
+        function blowCandle(el) {
+            if(el.querySelector('.flame-effect')) {
+                el.querySelector('.flame-effect').remove();
+                candlesOut++;
+            }
+            if(candlesOut === 3) {
+                confetti({ particleCount: 150, spread: 70 });
+                setTimeout(() => {
+                    document.getElementById('screen-cake').classList.add('hidden');
+                    document.getElementById('screen-tease').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        function triggerNo() {
+            const scolds = ["🔪😠 How dare you say no?", "😤 Sai! Try again!", "👊 Wrong answer!", "😈 No choice for you!", "🔪👧🏻 Be careful..."];
+            document.getElementById('angry-anime').innerText = scolds[Math.floor(Math.random()*scolds.length)];
+        }
+
+        const rhymes = [
+            { text: "Car lo untundi seat belt-uuu, ninnue chuste avthundi heart melt-uuu.. 🫠", colors: ["#ff9a9e", "#fecfef", "#ff0055"] },
+            { text: "Intlo untundhi mancham, nuvve naa prapancham.. 🌎", colors: ["#2af598", "#009efd", "#330867"] },
+            { text: "Kakinada loo famous kajaa, nuvve naa life ki yuvarajaa.. 👑", colors: ["#f6d365", "#fda085", "#f093fb"] },
+            { text: "Rathri kuttindhi nannu dhoma.. nee pina puttindhi naku prema... 🦟❤️", colors: ["#ff0844", "#ffb199", "#500000"] },
+            { text: "Garden lo untadhi flower-uu.. nuvve na lover-uu... 🌹", colors: ["#96fbc4", "#f9f586", "#13547a"] },
+            { text: "Ma amma morning vesthundi muggu.. ninnu chusthey naku vasthundi siggu.. 🙈", colors: ["#a1c4fd", "#c2e9fb", "#d4fc79"] }
+        ];
+
+        let boxesOpened = 0;
+        function showGifts() {
+            document.getElementById('screen-tease').classList.add('hidden');
+            document.getElementById('screen-final').classList.remove('hidden');
+            engine.style.opacity = "1";
+
+            const grid = document.getElementById('main-grid');
+            rhymes.forEach((item, i) => {
+                let card = document.createElement('div');
+                card.className = 'gift-box';
+                card.innerHTML = "🎁 OPEN ME";
+                card.onclick = function() {
+                    if(!this.classList.contains('opened')) {
+                        this.classList.add('opened');
+                        this.innerHTML = `<span style="padding:10px;">${item.text}</span>`;
+                        this.style.background = "rgba(255,255,255,0.2)";
+                        
+                        // Change the Grainy Aurora colors
+                        c1.style.background = item.colors[0];
+                        c2.style.background = item.colors[1];
+                        c3.style.background = item.colors[2];
+                        
+                        boxesOpened++;
+                        if(boxesOpened === 6) {
+                            document.getElementById('final-wish').classList.remove('hidden');
+                            confetti({ particleCount: 300, spread: 100, origin: {y: 0.8} });
+                        }
+                    }
+                };
+                grid.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
