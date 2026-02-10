@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Sai ❤️</title>
+    <style>
+        :root { 
+            --gold: #ffd700; 
+            --night-sky: radial-gradient(circle at center, #1b1a33 0%, #000000 100%);
+        }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--night-sky); 
+            color: white; font-family: 'Georgia', serif; overflow: hidden; 
+        }
+
+        canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99; pointer-events: none; }
+
+        .screen { 
+            position: absolute; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; 
+            text-align: center; z-index: 10; transition: 0.8s; padding: 20px; box-sizing: border-box; 
+        }
+        
+        .hidden { display: none !important; opacity: 0; }
+
+        .img-container { display: flex; justify-content: center; align-items: center; width: 100%; max-width: 320px; }
+        .main-img { width: 100%; height: auto; max-height: 280px; object-fit: contain; cursor: pointer; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); transition: 0.5s filter ease; }
+        .img-gift { animation: bounce 2s infinite; }
+        .img-bouquet { animation: heartbeat 2s infinite; max-height: 380px !important; }
+
+        .box-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; width: 100%; max-width: 380px; }
+        .grid-img { width: 100px; height: 100px; object-fit: contain; cursor: pointer; transition: 0.4s; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
+
+        #message-display {
+            width: 85%; min-height: 110px; padding: 20px; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 215, 0, 0.2);
+            backdrop-filter: blur(15px); margin-bottom: 20px; transform: scale(0); transition: 0.5s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #message-display.show { transform: scale(1); }
+
+        .btn { padding: 14px 40px; border: none; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; font-size: 1rem; }
+        .btn-yes { background: linear-gradient(to bottom, #ff4d4d, #b30000); color: white; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3); }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .final-msg { font-size: 2.5rem; color: var(--gold); text-shadow: 0 0 15px rgba(255,215,0,0.5); margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="screen1" class="screen">
+    <h1 style="color: var(--gold); font-style: italic; margin-bottom: 30px;">I have something special for you today, Sai... ❤️</h1>
+    <div class="img-container">
+        <img src="gift.WEBP" class="main-img img-gift" onclick="start()">
+    </div>
+</div>
+
+<div id="screen2" class="screen hidden">
+    <h1 style="color: var(--gold);">It's Wish Time! 🎂</h1>
+    <div class="img-container" onclick="blowCandles()">
+        <img src="cake.WEBP" id="cake-img" class="main-img">
+    </div>
+    <p id="cake-instruction" style="margin-top: 20px; color: #ccc;">[Tap the cake to blow out candles]</p>
+</div>
+
+<div id="screen3" class="screen hidden">
+    <p style="font-size: 1.2rem; line-height: 1.6;">I've something for you...<br>not a gift you can hold,<br>but something you'll feel..</p>
+    <h2 style="color: var(--gold);">Wanna see???</h2>
+    <div style="display:flex; justify-content: center; position: relative; width: 100%;">
+        <button class="btn btn-yes" onclick="nextScreen(3,4)">YES!</button>
+        <button id="no-btn" class="btn" style="background:#222; color:#888;" onclick="handleNo()">No</button>
+    </div>
+    <div id="no-reason" style="margin-top: 20px; color: #ff4d4d; font-weight: bold;"></div>
+</div>
+
+<div id="screen4" class="screen hidden">
+    <div id="message-display"><div id="rhyme-space" style="font-weight: bold; color: var(--gold); white-space: pre-line; line-height: 1.4;">Pick a gift, Yuvarajaa! ✨</div></div>
+    <div class="box-grid" id="grid"></div>
+</div>
+
+<div id="final-screen" class="screen hidden">
+    <div class="img-container">
+        <img src="bouquet.JPG" class="main-img img-bouquet">
+    </div>
+    <h1 class="final-msg">Happy Birthday Babbyyy! ❤️</h1>
+    <p style="font-size: 1.5rem;">I Love You Forever! 🌎💞</p>
+</div>
+
+<script>
+    const audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function init() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.size = Math.random() * 3 + 1;
+            this.speedX = Math.random() * 20 - 10;
+            this.speedY = Math.random() * 20 - 10;
+            this.gravity = 0.15;
+            this.alpha = 1;
+            this.friction = 0.98;
+        }
+        update() {
+            this.speedX *= this.friction;
+            this.speedY *= this.friction;
+            this.speedY += this.gravity;
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.alpha -= 0.008;
+        }
+        draw() {
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+        }
+    }
+
+    function createMagic(x, y, color, count) {
+        for (let i = 0; i < count; i++) {
+            particles.push(new Particle(x, y, color));
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+            if (particles[i].alpha <= 0) {
+                particles.splice(i, 1);
+                i--;
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    function start() { 
+        audio.play(); 
+        createMagic(window.innerWidth/2, window.innerHeight/2, "#ff4d4d", 150); 
+        nextScreen(1, 2); 
+    }
+
+    function blowCandles() {
+        const cake = document.getElementById('cake-img');
+        cake.style.filter = "brightness(0.4) grayscale(0.2)";
+        createMagic(window.innerWidth/2, window.innerHeight/2, "#ffffff", 100); 
+        setTimeout(() => {
+            createMagic(window.innerWidth/2, window.innerHeight/2, "#ffd700", 200);
+            setTimeout(() => nextScreen(2, 3), 1500);
+        }, 400);
+    }
+
+    const noMsgs = ["How dare you say no? 🔪💢", "Wrong button, King! 👑", "Click YES now! 🥺💔"];
+    function handleNo() {
+        const btn = document.getElementById('no-btn');
+        createMagic(btn.offsetLeft + 40, btn.offsetTop + 20, "#ffd700", 30);
+        document.getElementById('no-reason').innerText = noMsgs[Math.floor(Math.random()*noMsgs.length)];
+        btn.style.position = 'absolute';
+        btn.style.left = Math.random() * 70 + '%';
+        btn.style.top = Math.random() * 70 + '%';
+    }
+
+    const rhymes = [
+        {r: "car lo untundi seat belt-uuu,\nninnue chuste avthundi heart melt-uuu.. 🥺💖"},
+        {r: "intlo untundhi mancham,\nnuvve naa prapancham.. 🌎💞"},
+        {r: "Kakinada loo famous kajaa,\nnuvve naa life ki yuvarajaa.. 👑🤴"},
+        {r: "rathri kuttindhi nannu dhoma..\nnee pina puttindhi naku prema... 🦟💘"},
+        {r: "garden lo untadhi flower-uu..\nnuvve na lover-uu... 🌹👩‍❤️‍👨"},
+        {r: "ma amma morning vesthundi muggu..\nninnu chusthey naku vasthundi siggu.. 🙈✨"}
+    ];
+
+    function nextScreen(oldS, newS) {
+        document.getElementById(`screen${oldS}`).classList.add('hidden');
+        const nxt = document.getElementById(newS === 'final' ? 'final-screen' : `screen${newS}`);
+        nxt.classList.remove('hidden');
+        if(newS === 4) {
+            const grid = document.getElementById('grid');
+            rhymes.forEach((item, i) => {
+                const box = document.createElement('img');
+                // FIXED: Using gift.WEBP for the small boxes too
+                box.src = "gift.WEBP";
+                box.className = 'grid-img';
+                box.onclick = function() {
+                    if(this.style.opacity === "0.2") return;
+                    this.style.opacity = "0.2";
+                    this.style.transform = "scale(0.85)";
+                    document.getElementById('rhyme-space').innerText = item.r;
+                    document.getElementById('message-display').classList.add('show');
+                    createMagic(window.innerWidth/2, window.innerHeight/3, i%2? "#ffd700":"#ff4d4d", 80);
+                    if(document.querySelectorAll('.grid-img[style*="opacity: 0.2"]').length === 6) {
+                        setTimeout(() => {
+                            nextScreen(4, 'final');
+                            setInterval(() => createMagic(Math.random()*window.innerWidth, Math.random()*window.innerHeight, `hsl(${Math.random()*360}, 100%, 70%)`, 20), 200);
+                        }, 4000);
+                    }
+                };
+                grid.appendChild(box);
+            });
+        }
+    }
+
+    init(); animate();
+    window.onresize = init;
+</script>
+</body>
+</html>
