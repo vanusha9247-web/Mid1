@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Sai ❤️</title>
+    <style>
+        :root { 
+            --gold: #ffd700; 
+            --red: #ff3e3e; 
+            --night-sky: linear-gradient(135deg, #0f0c29 0%, #1b1a33 50%, #000000 100%);
+        }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--night-sky); 
+            color: white; font-family: 'Georgia', serif; overflow: hidden; 
+        }
+
+        canvas { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
+
+        .screen { 
+            position: absolute; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; 
+            text-align: center; z-index: 10; transition: 0.8s; padding: 20px; box-sizing: border-box; 
+        }
+        
+        .hidden { display: none !important; opacity: 0; }
+
+        /* REALISTIC 3D GIFT BOX */
+        .gift-box {
+            width: 100px; height: 100px; background: #b01a1a; position: relative;
+            cursor: pointer; box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            animation: bounce 2s infinite; border-radius: 5px;
+            transform-style: preserve-3d;
+        }
+        .gift-box::before { /* Vertical Ribbon */
+            content: ''; position: absolute; width: 22px; height: 100%; background: var(--gold); left: 50%; transform: translateX(-50%);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+        .gift-box::after { /* Horizontal Ribbon */
+            content: ''; position: absolute; height: 22px; width: 100%; background: var(--gold); top: 50%; transform: translateY(-50%);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+        .lid {
+            position: absolute; width: 110px; height: 25px; background: #961515;
+            top: -10px; left: -5px; border-radius: 3px; box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+        .bow-wrap { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-size: 2.8rem; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4)); }
+
+        /* REALISTIC GOURMET CAKE */
+        .cake-container { position: relative; width: 250px; height: 150px; cursor: pointer; display: flex; justify-content: center; align-items: flex-end; }
+        .cake-base { width: 220px; height: 100px; background: linear-gradient(#4d342c, #32211a); border-radius: 10px 10px 4px 4px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
+        .ganache { width: 100%; height: 30px; background: #2a1d15; border-radius: 10px 10px 0 0; position: absolute; top: 0; }
+        .candles-row { position: absolute; top: -45px; width: 160px; display: flex; justify-content: space-between; z-index: 5; }
+        .candle { width: 8px; height: 50px; background: linear-gradient(to right, #e0e0e0, #ffffff, #e0e0e0); border-radius: 3px; position: relative; }
+        .flame { width: 12px; height: 20px; background: radial-gradient(#fff, #ffa500, #ff4500); border-radius: 50% 50% 20% 20%; position: absolute; top: -22px; left: -2px; box-shadow: 0 0 15px #ff6600; animation: flicker 0.1s infinite alternate; }
+
+        /* UI */
+        #message-display {
+            min-height: 140px; padding: 30px; border-radius: 25px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(15px); margin-bottom: 30px; transform: scale(0); transition: 0.5s;
+        }
+        #message-display.show { transform: scale(1); }
+        .btn { padding: 14px 35px; border: none; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; transition: 0.3s; }
+        .btn-yes { background: var(--red); color: white; }
+
+        @keyframes flicker { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 1; transform: scale(1.1) rotate(2deg); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        
+        .final-msg { font-size: 3.5rem; color: var(--gold); text-shadow: 0 0 20px rgba(255,215,0,0.6); animation: heartbeat 1.5s infinite; }
+        @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="screen1" class="screen">
+    <h1 style="color: var(--gold); font-style: italic;">I have something special for you today, Sai...</h1>
+    <div class="gift-box" onclick="start()">
+        <div class="lid"></div>
+        <div class="bow-wrap">🎀</div>
+    </div>
+</div>
+
+<div id="screen2" class="screen hidden">
+    <h1 style="color: var(--gold);">It's Wish Time!</h1>
+    <div class="cake-container" onclick="blowCandles()">
+        <div class="candles-row">
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+        </div>
+        <div class="cake-base"><div class="ganache"></div></div>
+    </div>
+    <p style="margin-top: 40px; color: #aaa;">[Tap the cake to blow out the candles]</p>
+</div>
+
+<div id="screen3" class="screen hidden">
+    <p style="font-size: 1.2rem; line-height: 1.6;">I've something for you...<br>not a gift you can hold,<br>but something you'll feel..</p>
+    <h2>Wanna see???</h2>
+    <div style="display:flex;">
+        <button class="btn btn-yes" onclick="nextScreen(3,4)">YES!</button>
+        <button id="no-btn" class="btn" style="background:#333; color:#999;" onclick="handleNo()">No</button>
+    </div>
+    <div id="no-reason" style="margin-top: 25px; color: var(--red); font-weight: bold; min-height: 1.5em;"></div>
+</div>
+
+<div id="screen4" class="screen hidden">
+    <div id="message-display">
+        <div id="emoji-space" style="font-size: 3rem;">🎁</div>
+        <div id="rhyme-space" style="font-weight: bold; color: var(--gold); white-space: pre-line;">Pick a box!</div>
+    </div>
+    <div id="grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;"></div>
+</div>
+
+<div id="final-screen" class="screen hidden">
+    <h1 class="final-msg">Happy Birthday Babbyyy! ❤️</h1>
+    <p style="font-size: 1.5rem; color: white;">I Love You Forever!</p>
+</div>
+
+<script>
+    const audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let sparks = [];
+
+    function init() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+    class Spark {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.alpha = 1;
+            const angle = Math.random() * Math.PI * 2;
+            const force = Math.random() * (y < 0 ? 15 : 10) + 2;
+            this.vx = Math.cos(angle) * force;
+            this.vy = Math.sin(angle) * force;
+        }
+        draw() {
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill();
+            this.x += this.vx; this.y += this.vy; this.vy += 0.15; this.alpha -= 0.01;
+        }
+    }
+
+    function burst(x, y, color = "#ffd700") {
+        for(let i=0; i<100; i++) sparks.push(new Spark(x, y, color));
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        sparks.forEach((s, i) => { s.draw(); if(s.alpha <= 0) sparks.splice(i, 1); });
+        requestAnimationFrame(animate);
+    }
+
+    function start() { audio.play(); burst(window.innerWidth/2, window.innerHeight/2, "#ff3e3e"); nextScreen(1, 2); }
+
+    function blowCandles() {
+        document.querySelectorAll('.flame').forEach(f => f.style.display = 'none');
+        burst(window.innerWidth/2, window.innerHeight/2, "#ffd700");
+        setTimeout(() => nextScreen(2, 3), 1500);
+    }
+
+    const noTexts = [
+        "How dare you say no to me? 🔪💢",
+        "Wrong answer, Yuvarajaa! Try again... 👀",
+        "I know you want to click YES... don't lie! 😉",
+        "My heart is breaking... click YES now! 🥺💔",
+        "If you click NO again, no cake for you! 🎂🚫",
+        "You're so cute when you're being stubborn... but click YES! 💖"
+    ];
+    let noIdx = 0;
+    function handleNo() {
+        const btn = document.getElementById('no-btn');
+        document.getElementById('no-reason').innerText = noTexts[noIdx % noTexts.length];
+        noIdx++;
+        btn.style.position = 'absolute';
+        btn.style.left = Math.random() * 70 + '%';
+        btn.style.top = Math.random() * 70 + '%';
+    }
+
+    const rhymes = [
+        {r: "car lo untundi seat belt-uuu,\nninnue chuste avthundi heart melt-uuu..", e: "🥺💖"},
+        {r: "intlo untundhi mancham,\nnuvve naa prapancham..", e: "🌎💞"},
+        {r: "Kakinada loo famous kajaa,\nnuvve naa life ki yuvarajaa..", e: "👑🤴"},
+        {r: "rathri kuttindhi nannu dhoma..\nnee pina puttindhi naku prema...", e: "🦟💘"},
+        {r: "garden lo untadhi flower-uu..\nnuvve na lover-uu...", e: "🌹👩‍❤️‍👨"},
+        {r: "ma amma morning vesthundi muggu..\nninnu chusthey naku vasthundi siggu..", e: "🙈✨"}
+    ];
+
+    function nextScreen(oldS, newS) {
+        document.getElementById(`screen${oldS}`).classList.add('hidden');
+        const next = document.getElementById(newS === 'final' ? 'final-screen' : `screen${newS}`);
+        next.classList.remove('hidden');
+        if(newS === 4) {
+            const grid = document.getElementById('grid');
+            rhymes.forEach((item, i) => {
+                const box = document.createElement('div');
+                box.className = 'gift-box';
+                box.style.transform = 'scale(0.6)';
+                box.innerHTML = '<div class="lid"></div><div class="bow-wrap">🎁</div>';
+                box.onclick = function() {
+                    if(this.style.opacity === "0.2") return;
+                    this.style.opacity = "0.2";
+                    document.getElementById('rhyme-space').innerText = item.r;
+                    document.getElementById('emoji-space').innerText = item.e;
+                    document.getElementById('message-display').classList.add('show');
+                    burst(window.innerWidth/2, window.innerHeight/3, i%2? "#ffd700":"#ff3e3e");
+                    if(document.querySelectorAll('.gift-box[style*="opacity: 0.2"]').length === 6) {
+                        setTimeout(() => {
+                            nextScreen(4, 'final');
+                            setInterval(() => {
+                                burst(Math.random() * window.innerWidth, Math.random() * window.innerHeight, `hsl(${Math.random()*360}, 100%, 70%)`);
+                            }, 300);
+                        }, 3000);
+                    }
+                };
+                grid.appendChild(box);
+            });
+        }
+    }
+
+    init(); animate();
+    window.onresize = init;
+</script>
+</body>
+</html>
